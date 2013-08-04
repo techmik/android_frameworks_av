@@ -86,16 +86,18 @@ endif
 ifeq ($(TARGET_QCOM_AUDIO_VARIANT),caf)
     ifeq ($(BOARD_USES_ALSA_AUDIO),true)
         LOCAL_SRC_FILES += LPAPlayerALSA.cpp
+        ifeq ($(call is-chipset-in-board-platform,msm8960),true)
+            LOCAL_SRC_FILES += TunnelPlayer.cpp
+            LOCAL_CFLAGS += -DUSE_TUNNEL_MODE
+            LOCAL_CFLAGS += -DTUNNEL_MODE_SUPPORTS_AMRWB
+        endif
+        ifeq ($(NO_TUNNEL_MODE_FOR_MULTICHANNEL),true)
+            LOCAL_CFLAGS += -DNO_TUNNEL_MODE_FOR_MULTICHANNEL
+        endif
+    else
+        LOCAL_SRC_FILES += LPAPlayer.cpp
+        LOCAL_CFLAGS += -DLEGACY_LPA
     endif
-    ifeq ($(call is-chipset-in-board-platform,msm8960),true)
-        LOCAL_SRC_FILES += TunnelPlayer.cpp
-        LOCAL_CFLAGS += -DUSE_TUNNEL_MODE
-        LOCAL_CFLAGS += -DTUNNEL_MODE_SUPPORTS_AMRWB
-    endif
-    ifeq ($(NO_TUNNEL_MODE_FOR_MULTICHANNEL),true)
-        LOCAL_CFLAGS += -DNO_TUNNEL_MODE_FOR_MULTICHANNEL
-    endif
-    LOCAL_CFLAGS += -DQCOM_ENHANCED_AUDIO
 endif
 
 ifeq ($(TARGET_QCOM_MEDIA_VARIANT),caf)
@@ -177,19 +179,10 @@ LOCAL_MODULE_TAGS := optional
 
 
 ifeq ($(TARGET_ENABLE_QC_AV_ENHANCEMENTS),true)
-    LOCAL_CFLAGS += -DENABLE_QC_AV_ENHANCEMENTS
-    LOCAL_SRC_FILES  += ExtendedWriter.cpp
-    LOCAL_SRC_FILES  += QCMediaDefs.cpp
-    ifeq ($(TARGET_QCOM_MEDIA_VARIANT),caf)
-        LOCAL_C_INCLUDES += \
-            $(TOP)/hardware/qcom/media-caf/mm-core/inc
-    else
-        LOCAL_C_INCLUDES += \
-            $(TOP)/hardware/qcom/media/mm-core/inc
-    endif
-    ifeq ($(TARGET_ENABLE_DEFAULT_SMOOTHSTREAMING),true)
-            LOCAL_CFLAGS += -DENABLE_DEFAULT_SMOOTHSTREAMING
-    endif #TARGET_ENABLE_DEAFULT_SMOOTHSTREAMING
+       LOCAL_CFLAGS += -DENABLE_QC_AV_ENHANCEMENTS
+       LOCAL_SRC_FILES  += ExtendedWriter.cpp
+       LOCAL_SRC_FILES  += QCMediaDefs.cpp
+       LOCAL_C_INCLUDES += $(TOP)/hardware/qcom/media/mm-core/inc
 endif #TARGET_ENABLE_QC_AV_ENHANCEMENTS
 
 include $(BUILD_SHARED_LIBRARY)
